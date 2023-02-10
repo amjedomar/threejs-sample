@@ -1,4 +1,5 @@
 import * as THREE from 'three'
+import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls'
 import './style.css'
 import * as dat from 'dat.gui'
 import { PlaneGeometry } from 'three'
@@ -7,10 +8,10 @@ const gui = new dat.GUI()
 
 const world = {
   plane: {
-    width: 10,
-    height: 10,
-    widthSegments: 10,
-    heightSegments: 10,
+    width: 20,
+    height: 20,
+    widthSegments: 50,
+    heightSegments: 50,
   },
 }
 
@@ -50,10 +51,16 @@ const renderer = new THREE.WebGLRenderer()
 renderer.setSize(innerWidth, innerHeight)
 renderer.setPixelRatio(devicePixelRatio)
 document.body.appendChild(renderer.domElement)
+new OrbitControls(camera, renderer.domElement)
 
 camera.position.z = 5
 
-const planeGeometry = new THREE.PlaneGeometry(5, 5, 10, 10)
+const planeGeometry = new THREE.PlaneGeometry(
+  world.plane.width,
+  world.plane.height,
+  world.plane.widthSegments,
+  world.plane.heightSegments
+)
 
 const planeMaterial = new THREE.MeshPhongMaterial({
   color: 0xff0000,
@@ -75,6 +82,10 @@ for (let i = 0; i < arr.length; i += 3) {
 const light = new THREE.DirectionalLight(0xffffff, 1)
 light.position.set(0, 0, 1)
 scene.add(light)
+
+const backLight = new THREE.DirectionalLight(0xffffff, 1)
+backLight.position.set(0, 0, -1)
+scene.add(backLight)
 
 function animate() {
   requestAnimationFrame(animate)

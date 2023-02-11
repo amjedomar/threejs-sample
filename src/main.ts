@@ -5,6 +5,7 @@ import vertexShader from './shaders/vertex.glsl'
 import fragmentShader from './shaders/fragment.glsl'
 import atmosphereVertexShader from './shaders/atmosphereVertex.glsl'
 import atmosphereFragmentShader from './shaders/atmosphereFragment.glsl'
+import { Float32BufferAttribute } from 'three'
 
 console.log(vertexShader)
 const scene = new THREE.Scene()
@@ -56,11 +57,35 @@ const group = new THREE.Group()
 group.add(sphere)
 scene.add(group)
 
+// stars
+const starGeometry = new THREE.BufferGeometry()
+const starMaterial = new THREE.PointsMaterial({
+  color: 0xffffff,
+})
+
+const starsVertices = []
+
+for (let i = 0; i < 10000; i++) {
+  const x = (Math.random() - 0.5) * 2000
+  const y = (Math.random() - 0.5) * 2000
+  const z = -Math.random() * 2000
+  starsVertices.push(x, y, z)
+}
+
+starGeometry.setAttribute(
+  'position',
+  new Float32BufferAttribute(starsVertices, 3)
+)
+
+const stars = new THREE.Points(starGeometry, starMaterial)
+
+scene.add(stars)
+
 camera.position.z = 15
 
 const mouse = {
-  x: undefined,
-  y: undefined,
+  x: 0,
+  y: 0,
 } as any
 
 function animate() {
@@ -70,7 +95,7 @@ function animate() {
   gsap.to(group.rotation, {
     x: -mouse.y * 0.3,
     y: mouse.x * 0.5,
-    duration: 2
+    duration: 2,
   })
 }
 

@@ -9,17 +9,23 @@ const gui = new dat.GUI()
 
 const world = {
   plane: {
-    width: 25,
-    height: 25,
-    widthSegments: 25,
-    heightSegments: 25,
+    width: 400,
+    height: 400,
+    widthSegments: 50,
+    heightSegments: 50,
   },
 }
 
-gui.add(world.plane, 'width', 1, 50).onChange(generatePlane)
-gui.add(world.plane, 'height', 1, 50).onChange(generatePlane)
-gui.add(world.plane, 'widthSegments', 1, 50).onChange(generatePlane)
-gui.add(world.plane, 'heightSegments', 1, 50).onChange(generatePlane)
+gui.add(world.plane, 'width', 1, 600).onChange(generatePlane)
+gui.add(world.plane, 'height', 1, 600).onChange(generatePlane)
+gui.add(world.plane, 'widthSegments', 1, 100).onChange(generatePlane)
+gui.add(world.plane, 'heightSegments', 1, 100).onChange(generatePlane)
+
+const initialColor = {
+  r: 0,
+  g: 0.19,
+  b: 0.4,
+}
 
 function generatePlane() {
   planeMesh.geometry.dispose()
@@ -31,17 +37,37 @@ function generatePlane() {
     world.plane.heightSegments
   )
 
-  const arr = (planeMesh.geometry.attributes.position as any).array as number[]
-
-  for (let i = 0; i < arr.length; i += 3) {
-    arr[i + 2] += Math.random()
+  const planeAttrs = planeMesh.geometry.attributes as any
+  const planeMeshPos = planeAttrs.position
+  const { array } = planeMeshPos
+  const randomValues: number[] = []
+  
+  for (let i = 0; i < array.length; i += 3) {
+    array[i] += (Math.random() - 0.5) * 3
+    array[i + 1] += (Math.random() - 0.5) * 3
+    array[i + 2] += (Math.random() - 0.5) * 3
+  
+    randomValues.push(
+      Math.random() * Math.PI * 2,
+      Math.random() * Math.PI * 2,
+      Math.random() * Math.PI * 2
+    )
   }
-
+  
+  planeMeshPos.originalPosition = array
+  planeMeshPos.randomValues = randomValues
+  
   const colors = []
-
+  
   for (let i = 0; i < planeMeshPos.count; i++) {
     colors.push(initialColor.r, initialColor.g, initialColor.b)
   }
+  
+  planeMesh.geometry.setAttribute(
+    'color',
+    new THREE.BufferAttribute(new Float32Array(colors), 3)
+  )
+  
 }
 
 const scene = new THREE.Scene()
@@ -60,7 +86,7 @@ renderer.setPixelRatio(devicePixelRatio)
 document.body.appendChild(renderer.domElement)
 new OrbitControls(camera, renderer.domElement)
 
-camera.position.z = 5
+camera.position.z = 50
 
 const planeGeometry = new THREE.PlaneGeometry(
   world.plane.width,
@@ -77,49 +103,15 @@ const planeMaterial = new THREE.MeshPhongMaterial({
 })
 
 const planeMesh = new THREE.Mesh(planeGeometry, planeMaterial)
+generatePlane()
 
 const raycaster = new THREE.Raycaster()
 
 scene.add(planeMesh)
 
-const planeAttrs = planeMesh.geometry.attributes as any
-const planeMeshPos = planeAttrs.position
-const { array } = planeMeshPos
-const randomValues: number[] = []
-
-for (let i = 0; i < array.length; i += 3) {
-  array[i] += Math.random() - 0.5
-  array[i + 1] += Math.random() - 0.5
-  array[i + 2] += Math.random()
-  
-  randomValues.push(
-    Math.random() - 0.5,
-    Math.random() - 0.5,
-    Math.random() - 0.5
-  )
-}
-
-planeMeshPos.originalPosition = array
-
-const colors = []
-
-const initialColor = {
-  r: 0,
-  g: 0.19,
-  b: 0.4,
-}
-
-for (let i = 0; i < planeMeshPos.count; i++) {
-  colors.push(initialColor.r, initialColor.g, initialColor.b)
-}
-
-planeMesh.geometry.setAttribute(
-  'color',
-  new THREE.BufferAttribute(new Float32Array(colors), 3)
-)
 
 const light = new THREE.DirectionalLight(0xffffff, 1)
-light.position.set(0, 0, 1)
+light.position.set(0, 1, 1)
 scene.add(light)
 
 const backLight = new THREE.DirectionalLight(0xffffff, 1)
@@ -156,13 +148,17 @@ function animate() {
   renderer.render(scene, camera)
   frame += 0.01
 
-  const { array, originalPosition } = planeMeshPos
+  
+  const planeAttrs = planeMesh.geometry.attributes as any
+  const planeMeshPos = planeAttrs.position
+
+  const { array, originalPosition, randomValues } = planeMeshPos
 
   for (let i = 0; i < array.length; i += 3) {
-    array[i] = originalPosition[i] + Math.cos(frame + randomValues[i]) * 0.003
+    array[i] = originalPosition[i] + Math.cos(frame + randomValues[i]) * 0.01
 
     array[i + 1] =
-      originalPosition[i + 1] + Math.sin(frame + randomValues[i + 1]) * 0.003
+      originalPosition[i + 1] + Math.sin(frame + randomValues[i + 1]) * 0.01
   }
 
   planeMeshPos.needsUpdate = true

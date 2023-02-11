@@ -9,15 +9,15 @@ const gui = new dat.GUI()
 
 const world = {
   plane: {
-    width: 20,
-    height: 20,
-    widthSegments: 20,
-    heightSegments: 20,
+    width: 25,
+    height: 25,
+    widthSegments: 25,
+    heightSegments: 25,
   },
 }
 
-gui.add(world.plane, 'width', 1, 20).onChange(generatePlane)
-gui.add(world.plane, 'height', 1, 20).onChange(generatePlane)
+gui.add(world.plane, 'width', 1, 50).onChange(generatePlane)
+gui.add(world.plane, 'height', 1, 50).onChange(generatePlane)
 gui.add(world.plane, 'widthSegments', 1, 50).onChange(generatePlane)
 gui.add(world.plane, 'heightSegments', 1, 50).onChange(generatePlane)
 
@@ -35,6 +35,12 @@ function generatePlane() {
 
   for (let i = 0; i < arr.length; i += 3) {
     arr[i + 2] += Math.random()
+  }
+
+  const colors = []
+
+  for (let i = 0; i < planeMeshPos.count; i++) {
+    colors.push(initialColor.r, initialColor.g, initialColor.b)
   }
 }
 

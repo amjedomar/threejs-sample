@@ -82,12 +82,24 @@ const raycaster = new THREE.Raycaster()
 
 scene.add(planeMesh)
 
-const planeMeshPos = planeMesh.geometry.attributes.position as any
-const arr = planeMeshPos.array as number[]
+const planeAttrs = planeMesh.geometry.attributes as any
+const planeMeshPos = planeAttrs.position
+const { array } = planeMeshPos
+const randomValues: number[] = []
 
-for (let i = 0; i < arr.length; i += 3) {
-  arr[i + 2] += Math.random()
+for (let i = 0; i < array.length; i += 3) {
+  array[i] += Math.random() - 0.5
+  array[i + 1] += Math.random() - 0.5
+  array[i + 2] += Math.random()
+  
+  randomValues.push(
+    Math.random() - 0.5,
+    Math.random() - 0.5,
+    Math.random() - 0.5
+  )
 }
+
+planeMeshPos.originalPosition = array
 
 const colors = []
 
@@ -138,9 +150,22 @@ function updateColor(color: any, face: THREE.Face, hoverColor: any) {
   color.needsUpdate = true
 }
 
+let frame = 0
 function animate() {
   requestAnimationFrame(animate)
   renderer.render(scene, camera)
+  frame += 0.01
+
+  const { array, originalPosition } = planeMeshPos
+
+  for (let i = 0; i < array.length; i += 3) {
+    array[i] = originalPosition[i] + Math.cos(frame + randomValues[i]) * 0.003
+
+    array[i + 1] =
+      originalPosition[i + 1] + Math.sin(frame + randomValues[i + 1]) * 0.003
+  }
+
+  planeMeshPos.needsUpdate = true
 
   raycaster.setFromCamera(mouse, camera)
   const intersects = raycaster.intersectObject(planeMesh)

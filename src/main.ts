@@ -3,6 +3,7 @@ import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls'
 import './style.css'
 import * as dat from 'dat.gui'
 import { PlaneGeometry } from 'three'
+import gsap from 'gsap'
 
 const gui = new dat.GUI()
 
@@ -10,8 +11,8 @@ const world = {
   plane: {
     width: 20,
     height: 20,
-    widthSegments: 50,
-    heightSegments: 50,
+    widthSegments: 20,
+    heightSegments: 20,
   },
 }
 
@@ -84,8 +85,14 @@ for (let i = 0; i < arr.length; i += 3) {
 
 const colors = []
 
+const initialColor = {
+  r: 0,
+  g: 0.19,
+  b: 0.4,
+}
+
 for (let i = 0; i < planeMeshPos.count; i++) {
-  colors.push(1, 0, 0)
+  colors.push(initialColor.r, initialColor.g, initialColor.b)
 }
 
 planeMesh.geometry.setAttribute(
@@ -106,6 +113,25 @@ const mouse = {
   y: undefined,
 } as any
 
+function updateColor(color: any, face: THREE.Face, hoverColor: any) {
+  // vertex 1
+  color.setX(face.a, hoverColor.r)
+  color.setY(face.a, hoverColor.g)
+  color.setZ(face.a, hoverColor.b)
+
+  // vertex 2
+  color.setX(face.b, hoverColor.r)
+  color.setY(face.b, hoverColor.g)
+  color.setZ(face.b, hoverColor.b)
+
+  // vertex 3
+  color.setX(face.c, hoverColor.r)
+  color.setY(face.c, hoverColor.g)
+  color.setZ(face.c, hoverColor.b)
+
+  color.needsUpdate = true
+}
+
 function animate() {
   requestAnimationFrame(animate)
   renderer.render(scene, camera)
@@ -118,22 +144,20 @@ function animate() {
     const face = intersects[0].face!
     const { color } = geometry.attributes
 
-    // vertex 1
-    color.setX(face.a, 0)
-    color.setY(face.a, 0)
-    color.setZ(face.a, 1)
+    const hoverColor = {
+      r: 0.1,
+      g: 0.5,
+      b: 1,
+    }
 
-    // vertex 2
-    color.setX(face.b, 0)
-    color.setY(face.b, 0)
-    color.setZ(face.b, 1)
+    updateColor(color, face, hoverColor)
 
-    // vertex 3
-    color.setX(face.c, 0)
-    color.setY(face.c, 0)
-    color.setZ(face.c, 1)
-
-    color.needsUpdate = true
+    gsap.to(hoverColor, {
+      ...initialColor,
+      onUpdate() {
+        updateColor(color, face, hoverColor)
+      },
+    })
   }
 }
 
